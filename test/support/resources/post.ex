@@ -83,6 +83,11 @@ defmodule AshPostgres.Test.Post do
       require_atomic?(false)
     end
 
+    update :atomic_update_with_validation do
+      require_atomic?(true)
+      validate(present(:title))
+    end
+
     read :title_is_foo do
       filter(expr(title == "foo"))
     end

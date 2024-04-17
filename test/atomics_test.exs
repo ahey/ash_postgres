@@ -20,6 +20,26 @@ defmodule AshPostgres.AtomicsTest do
     assert [%{price: 2}] = Post |> Ash.read!()
   end
 
+  # This test passes, however the following warning is produced at compile time:
+  #
+  # warning: [AshPostgres.Test.Post]
+  #  actions -> atomic_update_with_validation:
+  #  `AshPostgres.Test.Post.atomic_update_with_validation` cannot be done
+  #   atomically, because the changes `[Ash.Resource.Validation.Present]` cannot
+  #   be done atomically
+  #
+  # You must either address the issue or set `require_atomic? false` on
+  #  `AshPostgres.Test.Post.atomic_update_with_validation`.
+  test "atomic update with validation" do
+    assert_raise Ash.Error.Invalid, ~r/title: must be present/, fn ->
+      Post
+      |> Ash.Changeset.for_create(:create, %{title: "foo", price: 1})
+      |> Ash.create!()
+      |> Ash.Changeset.for_update(:atomic_update_with_validation, %{title: ""})
+      |> Ash.update!()
+    end
+  end
+
   test "a basic atomic works" do
     post =
       Post
